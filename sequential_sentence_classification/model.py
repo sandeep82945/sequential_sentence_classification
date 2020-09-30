@@ -9,8 +9,31 @@ from allennlp.modules import TextFieldEmbedder, TimeDistributed, Seq2SeqEncoder
 from allennlp.nn.util import get_text_field_mask
 from allennlp.training.metrics import F1Measure, CategoricalAccuracy
 from allennlp.modules.conditional_random_field import ConditionalRandomField
+from os import path
+import json
 
 logger = logging.getLogger(__name__)
+
+lst_predicted=[]
+lst_actual=[]
+
+if path.exists("predicted.json"):
+  f = open("predicted.json", "r")
+  lst_predicted = json.load(f)
+  f.close()
+else:
+  f = open("predicted.json", "w")
+  json.dump([], f)
+  f.close()
+
+if path.exists("actual.json"):
+  f = open("actual.json", "r")
+  lst_actual = json.load(f)
+  f.close()
+else:
+  f = open("actual.json", "w")
+  json.dump([], f)
+  f.close()
 
 @Model.register("SeqClassificationModel")
 class SeqClassificationModel(Model):
@@ -195,13 +218,28 @@ class SeqClassificationModel(Model):
             # Compute cross entropy loss
             flattened_logits = label_logits.view((batch_size * num_sentences), self.num_labels)
             flattened_gold = labels.contiguous().view(-1)
-
             if not self.with_crf:
                 label_loss = self.loss(flattened_logits.squeeze(), flattened_gold)
                 if confidences is not None:
                     label_loss = label_loss * confidences.type_as(label_loss).view(-1)
                 label_loss = label_loss.mean()
                 flattened_probs = torch.softmax(flattened_logits, dim=-1)
+                # print(flattened_gold)
+                #print(flattened_probs)
+                y = torch.argmax(flattened_probs, dim=1)
+                y = y.view(1, -1)
+                lst_predicted.append(torch.squeeze(y).tolist())
+                lst_actual.append(flattened_gold.tolist())
+                f = open("predicted.json", "w")
+                json.dump(lst_predicted, f)
+                f.close()
+                f = open("actual.json", "w")
+                json.dump(lst_actual, f)
+                f.close()
+                
+
+                # print("**************************************")
+                # print(torch.squeeze(y.detach()) )
             else:
                 clamped_labels = torch.clamp(labels, min=0)
                 log_likelihood = self.crf(label_logits, clamped_labels, mask_sentences)
@@ -212,6 +250,7 @@ class SeqClassificationModel(Model):
                     for j, label_id in enumerate(instance_labels):
                         crf_label_probs[i, j, label_id] = 1
                 flattened_probs = crf_label_probs.view((batch_size * num_sentences), self.num_labels)
+                
 
             if not self.labels_are_scores:
                 evaluation_mask = (flattened_gold != -1)
@@ -222,6 +261,7 @@ class SeqClassificationModel(Model):
                     label_name = self.vocab.get_token_from_index(namespace='labels', index=label_index)
                     metric = self.label_f1_metrics[label_name]
                     metric(flattened_probs, flattened_gold, mask=evaluation_mask)
+                    
         
         if labels is not None:
             output_dict["loss"] = label_loss
@@ -245,3 +285,6 @@ class SeqClassificationModel(Model):
             metric_dict['avgF'] = average_F1
 
         return metric_dict
+
+print(lst_predicted)
+print(lst_actual)
