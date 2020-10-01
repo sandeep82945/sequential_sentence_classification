@@ -24,3 +24,16 @@ If you use the data or the model, please cite,
   booktitle={EMNLP},
 }
 ```
+### Setup git
+
+!git config --global user.email "sandeep82945@gmail.com"
+!git config --global user.name "sandeep82945"
+!git remote rm origin
+!git remote add origin https://sandeep82945:<oauth_token>@github.com/sandeep82945/sequential_sentence_classification.git
+!git push --set-upstream origin master
+
+### to push to git
+!git add .
+!git commit -am "adding Changes"
+!git push origin master
+
