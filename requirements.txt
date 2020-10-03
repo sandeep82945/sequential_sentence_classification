@@ -1,2 +1,2 @@
 jsonlines
--e git://github.com/sandeep82945/allennlphttps://github.com/sandeep82945/allennlp
+-e git://github.com/sandeep82945/allennlp
