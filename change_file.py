@@ -11,7 +11,9 @@ contents_split = file_contents.splitlines()
 f.close()
 
 for file in contents_split:
-    src = os.path.join(git_dir, file)
-    dest = os.path.join(allen_dir, file)
-    copyfile(src, dest)
+    
+    src = os.path.join(git_dir, file) 
+    if file != "" and os.path.exists(src):
+        dest = os.path.join(allen_dir, file)
+        copyfile(src, dest)
 
