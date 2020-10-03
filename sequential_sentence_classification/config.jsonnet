@@ -72,8 +72,8 @@ local boolToInt(s) =
     "type": "bucket",
     "sorting_keys": [["sentences", "num_fields"]],
     "batch_size" : std.parseInt(std.extVar("BATCH_SIZE")),
-    "cache_instances": true,
-    "biggest_batch_first": true
+    "cache_instances": false,
+    "biggest_batch_first": false
   },
 
   "trainer": {
